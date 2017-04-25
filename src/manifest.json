@@ -2,26 +2,21 @@
 {
   "manifest_version": 2,
   "name": "Salesforce.com Id Clipper",
-  "version": "3.2",
+  "version": "4.0",
+  "version_name": "4.0 experimental",
   "description": "Helps you get Salesforce.com Ids from records and links to your clipboard",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": ["background.js"],
+    "persistent": false
   },
   
-  "page_action" :
-  {
-    "default_icon" : "clipper.png",
-    "default_title" : "Clip this Id!"
-  },
   "permissions" : [
-    "tabs",
+    "activeTab",
     "contextMenus",
-    "clipboardWrite",
-    "http://*/",
-    "https://*/"
+    "clipboardWrite"
   ],
   "icons":
   {
-  	"128": "clipper_128.png"
+    "128": "clipper_128.png"
   }
 }

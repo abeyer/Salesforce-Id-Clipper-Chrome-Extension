@@ -33,18 +33,6 @@ LINK_RE = [
     /(http[s]?\:\/\/.*force\.com\/.*sObject\/\w{18}\/view)/,
 ];
 
-
-// Called when the url of a tab changes.
-function checkForValidUrl(tabId, changeInfo, tab) {
-    // If it's a salesforce database URL and contains an id
-    if ((tab.url.indexOf('force') > -1) &&
-                     ((tab.url.match(ID_RE[1]) != null) || (tab.url.match(ID_RE[2]) != null) || (tab.url.match(ID_RE[3]) != null) || (tab.url.match(ID_RE[4]) != null))) {
-        // ... show the page action.
-        chrome.pageAction.show(tabId);
-        chrome.pageAction.setIcon({path: "clipper.png", tabId: tab.id});
-    }
-};
-
 // Extract the ID from a URL and copy to clipboard
 function extractID(url, regex_set) {
     if (!regex_set) regex_set = ID_RE;
@@ -111,57 +99,40 @@ function copyToClipboard(copy_me) {
     return true;
 }
 
-// Listen for any changes to the URL of any tab.
-chrome.tabs.onUpdated.addListener(checkForValidUrl);
-
-// Called when the user clicks on the page action.
-chrome.pageAction.onClicked.addListener(function(tab) {
-    chrome.tabs.query({currentWindow: true, active: true}, function(tabs){
-        extractID(tabs[0].url);
-        if (id) {
-            //1 clicks copy 15, 2 copy 18, 3 copy clean link
-            if ((clickCount % 3) == 1){
-                copyToClipboard(id);
-                chrome.pageAction.setIcon({path: "clippered.png", tabId: tab.id});
-            } else if ((clickCount % 3) == 2){
-                copyToClipboard(id18);
-                chrome.pageAction.setIcon({path: "clippered18.png", tabId: tab.id});
-            } else {
-                copyToClipboard(extractLink(tab.url));
-                chrome.pageAction.setIcon({path: "clipperedLink.png", tabId: tab.id});
-            }
-        }
-        clickCount++;
+// Set up context menu tree at install time.
+chrome.runtime.onInstalled.addListener(function() {
+    chrome.contextMenus.create({
+        "title": "Copy Salesforce Id (15)",
+        "contexts": ["link"],
+        "id": "id15",
+    });
+    chrome.contextMenus.create({
+        "title": "Copy Salesforce Id (18)",
+        "contexts": ["link"],
+        "id": "id18",
+    });
+    chrome.contextMenus.create({
+        "title": "Copy Clean Salesforce URL",
+        "contexts": ["link"],
+        "id": "cleanURL",
     });
 });
 
-// Set up context menu tree at install time.
-chrome.runtime.onInstalled.addListener(function() {
-    chrome.contextMenus.create(
-        {"title": "Copy Salesforce Id (15)", "contexts" : ["link"],"onclick": onIdCopyClick}
-    )
-    chrome.contextMenus.create(
-        {"title": "Copy Salesforce Id (18)", "contexts" : ["link"],"onclick": onId18CopyClick}
-    )
-    chrome.contextMenus.create(
-        {"title": "Copy Clean Salesforce URL", "contexts" : ["link"],"onclick": onCleanCopyClick}
-    )
+chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    switch (info.menuItemId) {
+        case 'id15':
+            extractID(info.linkUrl);
+            if (id) copyToClipboard(id);
+            break;
+        case 'id18':
+            extractID(info.linkUrl);
+            if (id) copyToClipboard(id18);
+            break;
+        case 'cleanURL':
+            var link = extractLink(info.linkUrl);
+            if (link) copyToClipboard(link);
+            break;
+        default:
+            break;
+    }
 });
-
-// copy Id only
-function onIdCopyClick(info, tab) {
-    extractID(info.linkUrl);
-    if (id) copyToClipboard(id);
-}
-
-// copy Id (18) only
-function onId18CopyClick(info, tab) {
-    extractID(info.linkUrl);
-    if (id) copyToClipboard(id18);
-}
-
-// copy clean URL
-function onCleanCopyClick(info, tab) {
-    var link = extractLink(info.linkUrl);
-    if (link) copyToClipboard(link);
-}
