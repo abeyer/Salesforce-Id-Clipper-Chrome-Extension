@@ -1,0 +1,50 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>menu</title>
+        <style>
+            body {
+                min-width: 240px;
+                margin: 0;
+                padding: 0;
+                background-color: #fafafa;
+                font-family: 'Roboto', sans-serif;
+                font-weight: bold;
+            }
+            #menu {
+                margin: 0;
+                padding: 0;
+                list-style: none;
+            }
+            #menu li {
+                margin: 0;
+                padding: 0.6em;
+                color: #000;
+            }
+            #menu li:hover {
+                background-color: #dadaff;
+            }
+            #menu li.disabled,
+            #menu li.disabled:hover {
+                color: #666 !important;
+                background-color: #fafafa !important;
+            }
+            #menu li img {
+                width: 16px;
+                height: 16px;
+            }
+            #menu li.disabled img {
+                filter: grayscale(100%) !important;
+            }
+        </style>
+        <script src="menu.js"></script>
+    </head>
+    <body>
+        <ul id="menu">
+            <li><img src="clippered.png"> Clip Id (15)</li>
+            <li><img src="clippered18.png"> Clip Id (18)</li>
+            <li class="disabled"><img src="clipperedLink.png"> Clip Clean Link</li>
+        </ul>
+    </body>
+</html>
