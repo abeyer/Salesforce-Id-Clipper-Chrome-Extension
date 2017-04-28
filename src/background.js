@@ -45,7 +45,7 @@ function extractID(url, regex_set) {
             } else {
                 cleanLink = match[1];
             }
-            break; // Even if 'return' is removed, processing should still stop;
+            return true;
         }
     }
     return false;
@@ -53,8 +53,7 @@ function extractID(url, regex_set) {
 
 // Extract a link from a URL (delegates to extractID)
 function extractLink(url) {
-    extractID(url, LINK_RE);
-    return cleanLink;
+    return extractID(url, LINK_RE);
 }
 
 function setIds(currentId) {
@@ -119,20 +118,59 @@ chrome.runtime.onInstalled.addListener(function() {
 });
 
 chrome.contextMenus.onClicked.addListener(function(info, tab) {
+    let haveId = false;
+    let haveLink = false;
+
     switch (info.menuItemId) {
-        case 'id15':
-            extractID(info.linkUrl);
-            if (id) copyToClipboard(id);
+        case "id15":
+            haveId = extractID(info.linkUrl);
+            if (haveId) copyToClipboard(id);
             break;
-        case 'id18':
-            extractID(info.linkUrl);
-            if (id) copyToClipboard(id18);
+        case "id18":
+            haveId = extractID(info.linkUrl);
+            if (haveId) copyToClipboard(id18);
             break;
-        case 'cleanURL':
-            var link = extractLink(info.linkUrl);
-            if (link) copyToClipboard(link);
+        case "cleanURL":
+            haveLink = extractLink(info.linkUrl);
+            if (haveLink) copyToClipboard(link);
             break;
         default:
+            break;
+    }
+});
+
+chrome.runtime.onMessage.addListener(function(message, sender, sendResponse) {
+    console.log(message);
+    if (!sender.hasOwnProperty("id") || sender.id !== chrome.runtime.id) {
+        // only accept messages from self
+        return false;
+    }
+
+    switch (message) {
+        case "test":
+            chrome.tabs.query({active: true, currentWindow: true}, function(tabs) {
+                let currentURL = tabs[0].url;
+
+                let haveLink = extractLink(currentURL);
+                let haveId = extractID(currentURL);
+
+                let resp = {
+                    "id15": haveId ? id : null,
+                    "id18": haveId ? id18 : null,
+                    "cleanURL": haveLink ? cleanLink : null
+                };
+
+                sendResponse(resp);
+            });
+            return true;
+        case "id15":
+            copyToClipboard(id);
+            break;
+        case "id18":
+            copyToClipboard(id18);
+            break;
+        case "cleanURL":
+            copyToClipboard(cleanLink);
             break;
     }
 });
